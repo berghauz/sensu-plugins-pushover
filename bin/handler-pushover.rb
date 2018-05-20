@@ -23,6 +23,8 @@ class Pushover < Sensu::Handler
 
   def handle
     apiurl = settings['pushover']['apiurl'] || 'https://api.pushover.net/1/messages'
+    proxy_host = settings['pushover']['proxy_host'] || '127.0.0.1'
+    proxy_port = settings['pushover']['proxy_port'] || 3128
 
     keys = if settings['pushover']['keys']
              settings['pushover']['keys']
@@ -45,12 +47,13 @@ class Pushover < Sensu::Handler
       title: event_name,
       token: settings['pushover']['token'],
       priority: priority,
-      message: @event['check']['output']
+      message: @event['check']['output'],
+      sound: :tugboat
     }
 
     url = URI.parse(apiurl)
     req = Net::HTTP::Post.new(url.path)
-    res = Net::HTTP.new(url.host, url.port)
+    res = Net::HTTP.new(url.host, url.port, proxy_host, proxy_port)
     res.use_ssl = true
     res.verify_mode = OpenSSL::SSL::VERIFY_PEER
 
